@@ -12,58 +12,6 @@ VocalIA/
 
 ---
 
-## 🚀 Guía de inicio rápido
-
-### Paso 1 — Configurar MongoDB Atlas
-Lee `database/README.md`. En resumen:
-1. Crea cuenta en https://mongodb.com/atlas (gratis)
-2. Crea cluster M0 gratuito
-3. Obtén la connection string
-4. Corre `database/init.js` en el shell de Atlas
-
-### Paso 2 — Levantar el backend localmente
-
-```bash
-cd backend
-cp .env.example .env
-# Edita .env y pega tu MONGO_URI y un SECRET_KEY seguro
-pip install -r requirements.txt
-uvicorn main:app --reload
-# Backend corriendo en http://localhost:8000
-# Documentación automática en http://localhost:8000/docs
-```
-
-### Paso 3 — Levantar el frontend localmente
-
-```bash
-cd frontend
-cp .env.example .env.local
-# Verifica que VITE_API_URL=http://localhost:8000
-npm install
-npm run dev
-# Frontend corriendo en http://localhost:5173
-```
-
-### Paso 4 — Despliegue
-
-#### Backend → Render.com
-1. Crea cuenta en https://render.com
-2. "New Web Service" → conecta tu repo de GitHub
-3. Root Directory: `backend`
-4. Build Command: `pip install -r requirements.txt`
-5. Start Command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-6. En "Environment Variables" añade `MONGO_URI` y `SECRET_KEY`
-
-#### Frontend → Vercel
-1. Crea cuenta en https://vercel.com
-2. "New Project" → importa tu repo de GitHub
-3. Root Directory: `frontend`
-4. En "Environment Variables" añade:
-   - `VITE_API_URL` = URL de tu backend en Render (ej: https://vocalia-backend.onrender.com)
-5. Deploy
-
----
-
 ## 📊 Estado del proyecto
 
 | Componente    | Estado             | Próximo paso                         |
@@ -72,7 +20,7 @@ npm run dev
 | Backend       | ✅ Listo           | Desplegar en Render                  |
 | Base de datos | ✅ Lista           | Crear cluster en Atlas               |
 | IA - Features | ✅ Lista           | Se activa automáticamente            |
-| IA - Modelo   | ⏳ Sin entrenar    | Recolectar 300+ muestras primero     |
+| IA - Modelo   | ⏳ Sin entrenar    | Recolectar muestras primero           |
 
 ---
 
