@@ -1,0 +1,17 @@
+# render.yaml — despliega el backend en Render.com (plan gratuito)
+services:
+  - type: web
+    name: vocalia-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: MONGO_URI
+        sync: false          # Lo pegas manualmente en el dashboard de Render
+      - key: SECRET_KEY
+        generateValue: true  # Render genera uno automáticamente
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "60"
