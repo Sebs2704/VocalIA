@@ -43,8 +43,8 @@ function getFase(nota: string, sexo: string): string {
  * Las carpetas en disco son "Hombres" y "Mujeres" (con mayúscula).
  */
 function getAudioUrl(nota: string, sexo: string): string {
-  const carpeta = sexo === "mujer" ? "Mujeres" : "Hombres";
-  return `/audio/piano/${carpeta}/${nota}.wav`;
+const carpeta = sexo === "mujer" ? "mujer" : "hombre";
+return `/Audio/piano/${carpeta}/${nota}.wav`;
 }
 
 /** Genera un ID anónimo de sesión local (se persiste en sessionStorage). */

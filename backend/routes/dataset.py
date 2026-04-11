@@ -82,7 +82,7 @@ def analyze_pitch(file_path: str, nota_ref: str) -> dict:
             "detected_hz": round(median_f0, 2),
             "cents_deviation": round(cents, 1),
             "rating": pitch_rating(cents),
-            "en_rango_humano": abs(cents) <= 100,  # ±1 semitono = margen humano
+            "en_rango_humano": bool(abs(cents) <= 100),  # ±1 semitono = margen humano
         }
 
     return {
