@@ -10,11 +10,13 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS — ajusta los orígenes en producción
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
+        "http://localhost:8080",       # ← tu frontend actual
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:8080",
         "https://tu-frontend.vercel.app",
     ],
     allow_credentials=True,
@@ -22,20 +24,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Servir audios de referencia de piano ────────────────────────────────────
-# El frontend los solicita como:
-#   GET /audio/piano/Hombres/A4.wav
-#   GET /audio/piano/Mujeres/G3.wav
+# Servir audios de piano desde dataset_audio/voz/
 PIANO_DIR = os.path.join(os.path.dirname(__file__), "dataset_audio", "voz")
 if os.path.isdir(PIANO_DIR):
     app.mount("/audio/piano", StaticFiles(directory=PIANO_DIR), name="piano_audio")
 
-# ── Rutas ────────────────────────────────────────────────────────────────────
 app.include_router(auth.router,    prefix="/auth",    tags=["Auth"])
 app.include_router(voice.router,   prefix="/voice",   tags=["Voice"])
 app.include_router(history.router, prefix="/history", tags=["History"])
 app.include_router(dataset.router, prefix="/dataset", tags=["Dataset"])
-
 
 @app.get("/")
 def root():

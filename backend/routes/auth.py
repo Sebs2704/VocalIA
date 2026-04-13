@@ -42,4 +42,4 @@ async def login(data: LoginRequest):
     if not user or not verify_password(data.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
     token = create_access_token({"sub": user["_id"]})
-    return {"token": token, "user_id": user["_id"], "username": user["username"]}
+    return {"token": token, "user_id": user["_id"], "username": user["username"], "sex": user["sex"]}

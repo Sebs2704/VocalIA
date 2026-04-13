@@ -18,7 +18,7 @@ const Index = () => {
   const handleLogin = async (email: string, password: string) => {
     try {
       const data = await apiLogin(email, password);
-      setUser({ id: data.user_id, username: data.username, email, sex: "masculino" });
+      setUser({ id: data.user_id, username: data.username, email, sex: data.sex });
       toast.success(`¡Bienvenido, ${data.username}!`);
       setScreen("dashboard");
     } catch (e: any) { toast.error(e.message || "Error al iniciar sesión"); }
@@ -28,7 +28,7 @@ const Index = () => {
     try {
       const res = await apiSignup(data);
       setUser({ id: res.user_id, username: res.username, email: data.email, sex: data.sex });
-      toast.success(`¡Cuenta creada! ID: ${res.user_id}`);
+      toast.success(`¡Cuenta creada! Bienvenido, ${res.username} 🎤`);
       setScreen("consent");
     } catch (e: any) { toast.error(e.message || "Error al crear cuenta"); }
   };

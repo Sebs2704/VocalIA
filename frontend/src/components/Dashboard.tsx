@@ -24,8 +24,8 @@ const maleRanges = [
     color: "from-primary/80 to-primary",
     icon: Volume2,
     songs: [
-      { title: "Bésame Mucho - Andrea Bocelli", url: "https://www.youtube.com/watch?v=KQvxDzFOubk" },
-      { title: "El Triste - José José", url: "https://www.youtube.com/watch?v=GJvDBGqf9AI" },
+      { title: "El Triste – José José", url: "https://www.youtube.com/watch?v=b1cbgrcBrY0" },
+      { title: "Sombras Nada Más – Javier Solís", url: "https://www.youtube.com/watch?v=CmOC-K-YU2Y" },
     ],
     tips: [
       "Practica ejercicios de respiración diafragmática para controlar el flujo de aire.",
@@ -43,8 +43,8 @@ const maleRanges = [
     color: "from-primary/60 to-primary/90",
     icon: Headphones,
     songs: [
-      { title: "Cuando Nadie Me Ve - Alejandro Sanz", url: "https://www.youtube.com/watch?v=CKt9FGrVf1c" },
-      { title: "Solamente Tú - Pablo Alborán", url: "https://www.youtube.com/watch?v=SUfRgPm8O5g" },
+      { title: "Carlos Rivera - Te Esperaba", url: "https://www.youtube.com/watch?v=Rir_fuLX7HM" },
+      { title: "Diego Torres - Color Esperanza", url: "https://www.youtube.com/watch?v=SJLgBChvkzs" },
     ],
     tips: [
       "Aprovecha tu versatilidad practicando canciones en diferentes estilos.",
@@ -62,8 +62,8 @@ const maleRanges = [
     color: "from-accent/60 to-accent",
     icon: Sparkles,
     songs: [
-      { title: "Vivir Mi Vida - Marc Anthony", url: "https://www.youtube.com/watch?v=YXnjy5YlDwk" },
-      { title: "Cielito Lindo - Pedro Infante", url: "https://www.youtube.com/watch?v=1fkBcoU-GkU" },
+      { title: "Vivir Mi Vida - Marc Anthony", url: "https://www.youtube.com/watch?v=t_CAazLmW_c" },
+      { title: "Enrique Iglesias - Bailando", url: "https://www.youtube.com/watch?v=scbXcBXqTSU" },
     ],
     tips: [
       "Cuida tu voz con hidratación constante — bebe agua tibia, evita bebidas frías antes de cantar.",
@@ -144,7 +144,7 @@ const Dashboard = ({ username, sex, onLogout }: DashboardProps) => {
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
 
-  const ranges = sex === "masculino" ? maleRanges : femaleRanges;
+  const ranges = sex === "femenino" ? femaleRanges : maleRanges;
   const currentRange = ranges.find((r) => r.name === selectedRange);
 
   useEffect(() => {
@@ -261,7 +261,7 @@ const Dashboard = ({ username, sex, onLogout }: DashboardProps) => {
             {/* Rangos vocales interactivos */}
             <div>
               <h2 className="text-2xl font-heading font-bold text-foreground mb-2">
-                Rangos Vocales {sex === "masculino" ? "Masculinos" : "Femeninos"}
+                Rangos Vocales {sex === "femenino" ? "Femeninos" : "Masculinos"}
               </h2>
               <p className="text-muted-foreground font-body mb-6 text-sm">
                 Explora los diferentes rangos y descubre las características de cada uno.
@@ -338,7 +338,7 @@ const Dashboard = ({ username, sex, onLogout }: DashboardProps) => {
                 <ol className="text-xs font-body text-muted-foreground space-y-2 list-decimal list-inside">
                   <li>Presiona el botón de grabar y canta notas desde la más grave hasta la más aguda que puedas.</li>
                   <li>La IA analiza las frecuencias de tu voz y las compara con los rangos vocales estándar.</li>
-                  <li>En segundos recibirás tu clasificación: {sex === "masculino" ? "Bajo, Barítono o Tenor" : "Contralto, Mezzosoprano o Soprano"}.</li>
+                  <li>En segundos recibirás tu clasificación: {sex === "femenino" ? "Contralto, Mezzosoprano o Soprano" : "Bajo, Barítono o Tenor"}.</li>
                   <li>Con tu rango identificado, te recomendaremos material personalizado para practicar.</li>
                 </ol>
               </div>
