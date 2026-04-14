@@ -84,7 +84,7 @@ const DatasetCollectionScreen = ({ onBack }: DatasetCollectionScreenProps) => {
       audioRefBlob.current?.pause();
     };
   }, []);
- 
+
   const reproducirPiano = () => {
     if (!sexo) return;
     audioRefPiano.current?.pause();
@@ -95,7 +95,7 @@ const DatasetCollectionScreen = ({ onBack }: DatasetCollectionScreenProps) => {
     audio.onended = () => setReproduciendo(false);
     audio.onerror = () => setReproduciendo(false);
   };
- 
+
   const iniciarGrabacion = async () => {
     try {
       const stream   = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -104,7 +104,12 @@ const DatasetCollectionScreen = ({ onBack }: DatasetCollectionScreenProps) => {
       recorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
       recorder.onstop = () => {
         stream.getTracks().forEach(t => t.stop());
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        if (chunksRef.current.length === 0) {
+          toast.error("No se capturó audio. Verifica los permisos del micrófono.");
+          setGrabando(false);
+          return;
+        }
+        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
         setBloqueGrabado(blob);
         setGrabando(false);
         setIntentos(i => i + 1);
@@ -121,7 +126,7 @@ const DatasetCollectionScreen = ({ onBack }: DatasetCollectionScreenProps) => {
       toast.error("No se pudo acceder al micrófono. Verifica los permisos.");
     }
   };
- 
+
   const detenerGrabacion = () => {
     if (timerRef.current) clearTimeout(timerRef.current);
     if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
@@ -129,13 +134,31 @@ const DatasetCollectionScreen = ({ onBack }: DatasetCollectionScreenProps) => {
  
   const reproducirGrabacion = () => {
     if (!bloqueGrabado) return;
-    const url  = URL.createObjectURL(bloqueGrabado);
-    audioRefBlob.current?.pause();
+
+    if (bloqueGrabado.size === 0) {
+      toast.error("La grabación está vacía. Vuelve a grabar.");
+      return;
+    }
+
+    const url = URL.createObjectURL(bloqueGrabado);
+    if (audioRefBlob.current) {
+      audioRefBlob.current.pause();
+      audioRefBlob.current.src = "";
+    }
     const audio = new Audio(url);
     audioRefBlob.current = audio;
+
+    audio.onended = () => {
+      setReproduciendoBlob(false);
+      URL.revokeObjectURL(url);
+    };
+
     setReproduciendoBlob(true);
-    audio.play();
-    audio.onended = () => { setReproduciendoBlob(false); URL.revokeObjectURL(url); };
+    audio.play().catch(() => {
+      setReproduciendoBlob(false);
+      URL.revokeObjectURL(url);
+      toast.error("No se pudo reproducir el audio.");
+    });
   };
  
   const confirmarYSiguiente = async () => {
@@ -146,6 +169,10 @@ const DatasetCollectionScreen = ({ onBack }: DatasetCollectionScreenProps) => {
         bloqueGrabado, sexo, sessionId, notaActual, intentos, esUltima
       );
       if (res.analysis) setUltimoAnalisis(res.analysis);
+      if (res.analysis_warning) {
+        console.warn("Advertencia de análisis:", res.analysis_warning);
+        toast.warning(`Análisis: ${res.analysis_warning.includes("ffmpeg") || res.analysis_warning.includes("codec") ? "Instala ffmpeg para mejorar el análisis de audio" : res.analysis_warning}`);
+      }
  
       if (esUltima) {
         setResultadoFinal(res);
@@ -272,7 +299,7 @@ const DatasetCollectionScreen = ({ onBack }: DatasetCollectionScreenProps) => {
   if (paso === "grabacion") return (
     <Wrapper>
       <div className="flex-1 flex items-center justify-center px-4 pb-8">
-        <div className="animate-slide-up max-w-lg w-full space-y-4">
+        <div className="max-w-lg w-full space-y-4">
  
           {/* Progreso */}
           <div className="bg-card/80 backdrop-blur-md rounded-2xl p-4 border border-border">
@@ -326,7 +353,7 @@ const DatasetCollectionScreen = ({ onBack }: DatasetCollectionScreenProps) => {
                 <span className="text-xs font-body text-muted-foreground">{grabando ? "Detener" : "Grabar"}</span>
               </div>
               <div className="flex flex-col items-center gap-1">
-                <button onClick={reproducirGrabacion} disabled={!bloqueGrabado || grabando || reproduciendoblock}
+                <button type="button" aria-label="Escuchar grabación" onClick={reproducirGrabacion} disabled={!bloqueGrabado || grabando || reproduciendoblock}
                   className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${reproduciendoblock ? "bg-green-500/20 border-2 border-green-400" : bloqueGrabado ? "bg-card border-2 border-green-500/50 hover:border-green-400 hover:scale-105" : "bg-card border-2 border-border opacity-40"}`}>
                   <Volume2 className={`w-6 h-6 ${reproduciendoblock ? "text-green-400 animate-pulse" : "text-muted-foreground"}`} />
                 </button>
@@ -422,27 +449,40 @@ const DatasetCollectionScreen = ({ onBack }: DatasetCollectionScreenProps) => {
                 <p className="text-xs font-body text-muted-foreground">
                   <span className="font-semibold text-card-foreground">Estado:</span>{" "}
                   <span className={esValido ? "text-green-400" : "text-yellow-400"}>
-                    {esValido ? "✅ Válido" : "⚠️ Inválido"}
+                    {esValido ? "✅ Válido" : "⚠️ Guardado"}
                   </span>
                 </p>
-                {resultadoFinal.range_detected && (
-                  <p className="text-xs font-body text-muted-foreground">
-                    <span className="font-semibold text-card-foreground">Rango detectado:</span>{" "}
-                    {resultadoFinal.range_detected.min_note} – {resultadoFinal.range_detected.max_note}
-                    {resultadoFinal.range_detected.based_on === "all_attempted_notes" && (
-                      <span className="text-yellow-400 ml-1">(estimado)</span>
-                    )}
-                  </p>
-                )}
                 {resultadoFinal.stats && (
                   <p className="text-xs font-body text-muted-foreground">
-                    <span className="font-semibold text-card-foreground">Notas válidas:</span>{" "}
-                    {resultadoFinal.stats.valid_samples} / {resultadoFinal.stats.total_samples}
-                    {resultadoFinal.stats.valid_samples === 0 && resultadoFinal.stats.total_samples > 0 && (
-                      <span className="block text-yellow-400 mt-1 text-xs">
-                        Revisa que el micrófono tenga buen volumen y que mantengas la nota al menos 1.5 segundos.
-                      </span>
-                    )}
+                    <span className="font-semibold text-card-foreground">Notas acertadas:</span>{" "}
+                    <span className="text-primary font-semibold">
+                      {resultadoFinal.stats.valid_samples} / {resultadoFinal.stats.total_samples}
+                    </span>
+                  </p>
+                )}
+                {resultadoFinal.range_detected && resultadoFinal.range_detected.based_on === "valid_notes_only" && (
+                  <p className="text-xs font-body text-muted-foreground">
+                    <span className="font-semibold text-card-foreground">Rango vocal:</span>{" "}
+                    {resultadoFinal.range_detected.min_note} – {resultadoFinal.range_detected.max_note}
+                  </p>
+                )}
+                {resultadoFinal.valid_notes?.length > 0 && (
+                  <div>
+                    <p className="text-xs font-body font-semibold text-card-foreground mb-1">
+                      Notas en tu rango:
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {resultadoFinal.valid_notes.map((n: string) => (
+                        <span key={n} className="text-xs bg-green-500/20 text-green-400 font-mono px-2 py-0.5 rounded-full">
+                          {n}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {resultadoFinal.stats?.valid_samples === 0 && (
+                  <p className="text-xs text-yellow-400 mt-1">
+                    Sostén la nota al menos 0.5s y canta fuerte cerca del micrófono.
                   </p>
                 )}
               </div>

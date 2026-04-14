@@ -21,6 +21,7 @@ dist/
 
 # Audio dataset (demasiado pesado para git)
 backend/dataset_audio/
+backend/venv/
 
 # OS
 .DS_Store

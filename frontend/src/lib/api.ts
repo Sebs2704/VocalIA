@@ -50,7 +50,8 @@ export async function apiSubmitSample(
   esUltima: boolean = false,
 ) {
   const formData = new FormData();
-  formData.append("file", audioBlob, `${sessionId}_${nota}.webm`);
+  const ext = audioBlob.type.includes("ogg") ? ".ogg" : audioBlob.type.includes("wav") ? ".wav" : ".webm";
+  formData.append("file", audioBlob, `${sessionId}_${nota}${ext}`);
   formData.append("sex", sex);
   formData.append("session_id", sessionId);
   formData.append("nota", nota);
