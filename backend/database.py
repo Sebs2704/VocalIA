@@ -3,9 +3,9 @@ from config import settings
 
 client = AsyncIOMotorClient(
     settings.MONGO_URI,
-    serverSelectionTimeoutMS=5000,
-    connectTimeoutMS=10000,
-    socketTimeoutMS=20000,
+    serverSelectionTimeoutMS=30000,
+    connectTimeoutMS=20000,
+    socketTimeoutMS=45000,
     maxPoolSize=10,
     retryWrites=True,
     retryReads=True,

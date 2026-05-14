@@ -33,6 +33,12 @@ app.include_router(social.router,  prefix="/social",  tags=["Social"])
 
 @app.on_event("startup")
 async def startup():
+    from database import client
+    try:
+        await client.admin.command("ping")
+        print("MongoDB connection: OK")
+    except Exception as e:
+        print(f"MongoDB connection FAILED: {type(e).__name__}: {e}")
     try:
         await seed_artists()
     except Exception as e:
