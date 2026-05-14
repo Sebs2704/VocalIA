@@ -1,5 +1,6 @@
 import smtplib
 import asyncio
+import socket
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from config import settings
@@ -12,7 +13,9 @@ def _send_smtp(to_email: str, subject: str, html_body: str) -> None:
     msg["To"] = to_email
     msg.attach(MIMEText(html_body, "html", "utf-8"))
 
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+    # Forzar IPv4 — Railway no tiene rutas IPv6 en el contenedor
+    ipv4 = socket.getaddrinfo("smtp.gmail.com", 587, socket.AF_INET)[0][4][0]
+    with smtplib.SMTP(ipv4, 587) as server:
         server.ehlo()
         server.starttls()
         server.login(settings.SMTP_USER, settings.SMTP_PASS)
