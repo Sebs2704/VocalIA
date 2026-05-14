@@ -13,11 +13,10 @@ def _send_smtp(to_email: str, subject: str, html_body: str) -> None:
     msg["To"] = to_email
     msg.attach(MIMEText(html_body, "html", "utf-8"))
 
-    # Forzar IPv4 — Railway no tiene rutas IPv6 en el contenedor
-    ipv4 = socket.getaddrinfo("smtp.gmail.com", 587, socket.AF_INET)[0][4][0]
-    with smtplib.SMTP(ipv4, 587) as server:
-        server.ehlo()
-        server.starttls()
+    # Puerto 465 SSL directo (igual que nodemailer service:'gmail')
+    # Forzar IPv4 — Railway no tiene rutas IPv6
+    ipv4 = socket.getaddrinfo("smtp.gmail.com", 465, socket.AF_INET)[0][4][0]
+    with smtplib.SMTP_SSL(ipv4, 465) as server:
         server.login(settings.SMTP_USER, settings.SMTP_PASS)
         server.sendmail(settings.SMTP_USER, to_email, msg.as_string())
 
