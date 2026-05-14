@@ -1,30 +1,24 @@
 """
-Envío de emails via Gmail SMTP (smtplib built-in, sin dependencias extra).
+Envío de emails via Resend API (HTTP — compatible con Railway).
 """
-import smtplib
-import asyncio
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+import httpx
 from config import settings
 
 
-def _send_sync(to_email: str, subject: str, html_body: str) -> None:
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"]    = f"VocalIA <{settings.SMTP_USER}>"
-    msg["To"]      = to_email
-    msg.attach(MIMEText(html_body, "html", "utf-8"))
-
-    with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
-        server.ehlo()
-        server.starttls()
-        server.login(settings.SMTP_USER, settings.SMTP_PASS)
-        server.sendmail(settings.SMTP_USER, to_email, msg.as_string())
-
-
 async def send_email(to_email: str, subject: str, html_body: str) -> None:
-    """Corre el envío SMTP en un thread para no bloquear el event loop."""
-    await asyncio.to_thread(_send_sync, to_email, subject, html_body)
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.post(
+            "https://api.resend.com/emails",
+            headers={"Authorization": f"Bearer {settings.RESEND_API_KEY}"},
+            json={
+                "from":    settings.EMAIL_FROM,
+                "to":      [to_email],
+                "subject": subject,
+                "html":    html_body,
+            },
+        )
+        if resp.status_code >= 400:
+            raise RuntimeError(f"Resend error {resp.status_code}: {resp.text}")
 
 
 def reset_password_html(username: str, reset_url: str) -> str:

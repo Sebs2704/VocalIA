@@ -40,7 +40,10 @@ async def signup(data: SignupRequest):
 
 @router.post("/login")
 async def login(data: LoginRequest):
-    user = await users_col.find_one({"email": data.email})
+    try:
+        user = await users_col.find_one({"email": data.email})
+    except Exception:
+        raise HTTPException(status_code=503, detail="Error de conexión con la base de datos. Intenta de nuevo.")
     if not user or not verify_password(data.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
     token = create_access_token({"sub": user["_id"]})
@@ -121,8 +124,8 @@ async def forgot_password(data: ForgotPasswordRequest):
     if not user:
         return {"message": "Si el correo está registrado, recibirás un enlace."}
 
-    if not settings.SMTP_USER or not settings.SMTP_PASS or settings.SMTP_PASS == "TU_APP_PASSWORD_AQUI":
-        raise HTTPException(status_code=503, detail="Configura SMTP_USER y SMTP_PASS en el archivo .env del backend")
+    if not settings.RESEND_API_KEY:
+        raise HTTPException(status_code=503, detail="Configura RESEND_API_KEY en las variables de entorno del backend")
 
     token = secrets.token_urlsafe(32)
     expires_at = datetime.utcnow() + timedelta(hours=1)
