@@ -1,24 +1,26 @@
-"""
-Envío de emails via Resend API (HTTP — compatible con Railway).
-"""
-import httpx
+import smtplib
+import asyncio
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from config import settings
 
 
+def _send_smtp(to_email: str, subject: str, html_body: str) -> None:
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = settings.SMTP_USER
+    msg["To"] = to_email
+    msg.attach(MIMEText(html_body, "html", "utf-8"))
+
+    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+        server.ehlo()
+        server.starttls()
+        server.login(settings.SMTP_USER, settings.SMTP_PASS)
+        server.sendmail(settings.SMTP_USER, to_email, msg.as_string())
+
+
 async def send_email(to_email: str, subject: str, html_body: str) -> None:
-    async with httpx.AsyncClient(timeout=15) as client:
-        resp = await client.post(
-            "https://api.resend.com/emails",
-            headers={"Authorization": f"Bearer {settings.RESEND_API_KEY}"},
-            json={
-                "from":    settings.EMAIL_FROM,
-                "to":      [to_email],
-                "subject": subject,
-                "html":    html_body,
-            },
-        )
-        if resp.status_code >= 400:
-            raise RuntimeError(f"Resend error {resp.status_code}: {resp.text}")
+    await asyncio.to_thread(_send_smtp, to_email, subject, html_body)
 
 
 def reset_password_html(username: str, reset_url: str) -> str:

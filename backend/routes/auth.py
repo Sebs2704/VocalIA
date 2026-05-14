@@ -124,9 +124,6 @@ async def forgot_password(data: ForgotPasswordRequest):
     if not user:
         return {"message": "Si el correo está registrado, recibirás un enlace."}
 
-    if not settings.RESEND_API_KEY:
-        raise HTTPException(status_code=503, detail="Configura RESEND_API_KEY en las variables de entorno del backend")
-
     token = secrets.token_urlsafe(32)
     expires_at = datetime.utcnow() + timedelta(hours=1)
 

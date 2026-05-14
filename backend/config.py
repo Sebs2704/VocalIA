@@ -6,9 +6,9 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
-    # Email — Resend API
-    RESEND_API_KEY: str = ""
-    EMAIL_FROM: str = "VocalIA <noreply@tudominio.com>"
+    # Email — Gmail SMTP
+    SMTP_USER: str = ""
+    SMTP_PASS: str = ""
     FRONTEND_URL: str = "http://localhost:5173"
 
     class Config:
