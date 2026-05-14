@@ -462,7 +462,7 @@ const DatasetCollectionScreen = ({ onBack }: DatasetCollectionScreenProps) => {
                 )}
                 {resultadoFinal.range_detected && resultadoFinal.range_detected.based_on === "valid_notes_only" && (
                   <p className="text-xs font-body text-muted-foreground">
-                    <span className="font-semibold text-card-foreground">Rango vocal:</span>{" "}
+                    <span className="font-semibold text-card-foreground">Notas detectadas:</span>{" "}
                     {resultadoFinal.range_detected.min_note} – {resultadoFinal.range_detected.max_note}
                   </p>
                 )}

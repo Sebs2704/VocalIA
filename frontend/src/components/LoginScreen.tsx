@@ -10,6 +10,31 @@ interface LoginScreenProps {
   onGoToSignup: () => void;
 }
 
+const T = {
+  dark:   "hsl(200,55%,22%)",
+  mid:    "hsl(200,50%,34%)",
+  light:  "hsl(200,47%,44%)",
+  card:   "hsl(200,40%,72%)",
+  cardLt: "hsl(200,38%,82%)",
+  text:   "hsl(200,55%,17%)",
+  textMd: "rgba(15,48,64,0.65)",
+  shadow: "rgba(0,60,100,",
+  btnBot: "hsl(200,55%,15%)",
+};
+
+const inputStyle: React.CSSProperties = {
+  background: "rgba(255,255,255,0.45)",
+  border: "1px solid rgba(255,255,255,0.65)",
+  boxShadow: "inset 0 2px 4px rgba(0,60,100,0.07)",
+  color: T.text,
+  width: "100%",
+  padding: "12px 16px",
+  borderRadius: "12px",
+  fontSize: "14px",
+  fontFamily: "var(--font-body)",
+  outline: "none",
+};
+
 const LoginScreen = ({ onLogin, onBack, onForgotPassword, onGoToSignup }: LoginScreenProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,50 +45,86 @@ const LoginScreen = ({ onLogin, onBack, onForgotPassword, onGoToSignup }: LoginS
     onLogin(email, password);
   };
 
+  const btnShadow = `0 3px 0 ${T.btnBot}, 0 6px 20px ${T.shadow}0.35), inset 0 1px 0 rgba(255,255,255,0.16)`;
+
   return (
     <div className="relative min-h-screen overflow-hidden flex items-center justify-center">
       <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${backgroundImg})` }} />
-      <div className="absolute inset-0 bg-background/20" />
+      <div className="absolute inset-0" style={{ background: `linear-gradient(160deg, ${T.dark}cc 0%, ${T.mid}99 100%)` }} />
 
       <div className="relative z-10 w-full max-w-md mx-4 animate-slide-up">
-        <div className="bg-card/90 backdrop-blur-md rounded-2xl p-8 shadow-vocalia border border-border">
-          <button onClick={onBack} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 font-body transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Volver
-          </button>
-
-          <div className="flex justify-center mb-4">
-            <img src={logoImg} alt="VocalIA" className="w-16 h-16 object-contain" />
+        <div
+          className="overflow-hidden"
+          style={{
+            borderRadius: "24px",
+            background: `linear-gradient(160deg, ${T.cardLt} 0%, ${T.card} 100%)`,
+            boxShadow: `0 8px 32px ${T.shadow}0.25), 0 32px 80px ${T.shadow}0.20), inset 0 1px 0 rgba(255,255,255,0.55)`,
+            border: "1px solid rgba(255,255,255,0.45)",
+          }}
+        >
+          {/* Header teal */}
+          <div
+            className="relative flex flex-col items-center pt-8 pb-6 px-8"
+            style={{
+              background: `linear-gradient(145deg, ${T.dark} 0%, ${T.mid} 55%, ${T.light} 100%)`,
+              boxShadow: "inset 0 -1px 0 rgba(0,0,0,0.10)",
+            }}
+          >
+            <button
+              onClick={onBack}
+              className="absolute top-4 left-4 flex items-center gap-1 text-xs font-body transition-all"
+              style={{ color: "rgba(255,255,255,0.75)" }}
+            >
+              <ArrowLeft className="w-4 h-4" /> Volver
+            </button>
+            <div
+              className="mb-3"
+              style={{
+                padding: "10px",
+                borderRadius: "18px",
+                background: "rgba(255,255,255,0.18)",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.30)",
+                border: "1px solid rgba(255,255,255,0.22)",
+              }}
+            >
+              <img src={logoImg} alt="VocalIA" className="w-12 h-12 object-contain" />
+            </div>
+            <h2 className="text-2xl font-heading font-bold text-white" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.25)" }}>
+              Iniciar Sesión
+            </h2>
           </div>
 
-          <h2 className="text-2xl font-heading font-bold text-card-foreground text-center mb-6">
-            Iniciar Sesión
-          </h2>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Body */}
+          <div className="px-8 py-6 space-y-4">
             <div>
-              <label className="block text-sm font-body font-medium text-card-foreground mb-1">Correo electrónico</label>
+              <label className="block text-xs font-body font-medium mb-1.5" style={{ color: T.textMd }}>Correo electrónico</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg bg-input/50 border border-border text-foreground font-body text-sm focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
+                style={inputStyle}
                 placeholder="tu@correo.com"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-body font-medium text-card-foreground mb-1">Contraseña</label>
+              <label className="block text-xs font-body font-medium mb-1.5" style={{ color: T.textMd }}>Contraseña</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg bg-input/50 border border-border text-foreground font-body text-sm focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground pr-10"
+                  style={{ ...inputStyle, paddingRight: "40px" }}
                   placeholder="••••••••"
                   required
                 />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 transition-opacity hover:opacity-100 opacity-60"
+                  style={{ color: T.text }}
+                >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
@@ -72,25 +133,48 @@ const LoginScreen = ({ onLogin, onBack, onForgotPassword, onGoToSignup }: LoginS
             <button
               type="button"
               onClick={onForgotPassword}
-              className="text-xs text-primary hover:underline font-body"
+              className="text-xs font-body transition-all hover:underline"
+              style={{ color: T.mid }}
             >
               ¿Olvidaste tu contraseña?
             </button>
 
             <button
               type="submit"
-              className="w-full px-6 py-3 rounded-xl bg-primary text-primary-foreground font-heading font-semibold text-sm shadow-vocalia-button hover:scale-[1.02] transition-all"
+              onClick={handleSubmit}
+              className="w-full py-3.5 rounded-xl font-heading font-semibold text-sm flex items-center justify-center gap-2 transition-all"
+              style={{
+                background: `linear-gradient(135deg, ${T.dark} 0%, ${T.mid} 100%)`,
+                color: "white",
+                boxShadow: btnShadow,
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-2px)";
+                (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 5px 0 ${T.btnBot}, 0 10px 28px ${T.shadow}0.40), inset 0 1px 0 rgba(255,255,255,0.16)`;
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)";
+                (e.currentTarget as HTMLButtonElement).style.boxShadow = btnShadow;
+              }}
+              onMouseDown={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.transform = "translateY(2px)";
+                (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 1px 0 ${T.btnBot}, 0 2px 8px ${T.shadow}0.28), inset 0 1px 0 rgba(255,255,255,0.16)`;
+              }}
+              onMouseUp={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-2px)";
+                (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 5px 0 ${T.btnBot}, 0 10px 28px ${T.shadow}0.40), inset 0 1px 0 rgba(255,255,255,0.16)`;
+              }}
             >
               Ingresar
             </button>
-          </form>
 
-          <p className="text-center text-sm text-muted-foreground font-body mt-4">
-            ¿No tienes cuenta?{" "}
-            <button onClick={onGoToSignup} className="text-primary hover:underline font-medium">
-              Crear cuenta
-            </button>
-          </p>
+            <p className="text-center text-sm font-body" style={{ color: T.textMd }}>
+              ¿No tienes cuenta?{" "}
+              <button onClick={onGoToSignup} className="font-semibold hover:underline transition-all" style={{ color: T.mid }}>
+                Crear cuenta
+              </button>
+            </p>
+          </div>
         </div>
       </div>
     </div>

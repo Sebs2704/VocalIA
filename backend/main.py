@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
-from routes import auth, voice, history, dataset
+from routes import auth, voice, history, dataset, songs, social
+from seed_artists import seed_artists
 
 app = FastAPI(
     title="VocalIA API",
@@ -12,14 +13,8 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:8080",       # ← tu frontend actual
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:8080",
-        "https://tu-frontend.vercel.app",
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -33,6 +28,13 @@ app.include_router(auth.router,    prefix="/auth",    tags=["Auth"])
 app.include_router(voice.router,   prefix="/voice",   tags=["Voice"])
 app.include_router(history.router, prefix="/history", tags=["History"])
 app.include_router(dataset.router, prefix="/dataset", tags=["Dataset"])
+app.include_router(songs.router,   prefix="/songs",   tags=["Songs"])
+app.include_router(social.router,  prefix="/social",  tags=["Social"])
+
+@app.on_event("startup")
+async def startup():
+    await seed_artists()
+
 
 @app.get("/")
 def root():

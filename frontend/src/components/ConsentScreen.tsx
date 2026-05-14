@@ -41,8 +41,8 @@ const ConsentScreen = ({ onAccept, onBack }: ConsentScreenProps) => {
           </p>
 
           <p className="text-card-foreground/80 font-body text-xs md:text-sm leading-relaxed mb-6">
-            Al continuar, usted acepta que su voz será grabada y analizada con el fin de determinar su
-            rango vocal. Los datos recolectados serán utilizados exclusivamente para mejorar el modelo
+            Al continuar, usted acepta que su voz será grabada y analizada con el fin de determinar las
+            frecuencias de su voz. Los datos recolectados serán utilizados exclusivamente para mejorar el modelo
             de IA de VocalIA. Se le asignará un identificador aleatorio para proteger su privacidad.
           </p>
 

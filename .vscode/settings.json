@@ -1,0 +1,21 @@
+{
+  "files.exclude": {
+    "**/.claude": true,
+    "**/node_modules": true,
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/*.pyo": true,
+    "**/.git": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/__pycache__": true,
+    "**/dist": true,
+    "**/.venv": true
+  },
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "[python]": {
+    "editor.tabSize": 4
+  }
+}

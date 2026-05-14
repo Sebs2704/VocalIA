@@ -28,5 +28,9 @@ backend/venv/
 Thumbs.db
 
 # IDE
-.vscode/
 .idea/
+.vscode/*.code-snippets
+.vscode/launch.json
+
+# Claude Code (configuración local del asistente)
+.claude/
