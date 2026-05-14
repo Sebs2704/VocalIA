@@ -365,6 +365,22 @@ export async function apiAddComment(postId: string, content: string): Promise<Co
   return res.json();
 }
 
+export async function apiDeletePost(postId: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/social/posts/${postId}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Error al eliminar post"); }
+}
+
+export async function apiDeleteComment(postId: string, commentId: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/social/posts/${postId}/comments/${commentId}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Error al eliminar comentario"); }
+}
+
 // ── Artista más similar ───────────────────────────────────────────────────────
 export interface ArtistMatchResult {
   artista:        string;

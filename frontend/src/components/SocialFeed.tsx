@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
-import { Heart, Send, UserPlus, UserCheck, Search, Music2, Image, X, Loader2, User, MessageCircle } from "lucide-react";
+import { Heart, Send, UserPlus, UserCheck, Search, Music2, Image, X, Loader2, User, MessageCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   apiGetFeed, apiCreatePost, apiToggleLike, apiGetUsers,
   apiFollowUser, apiUnfollowUser, apiGetProfile, apiGetTopSongs, apiGetRecommendations,
-  apiGetComments, apiAddComment,
+  apiGetComments, apiAddComment, apiDeletePost, apiDeleteComment,
   type Post, type UserSummary, type SongResult, type UserProfile, type Comment,
 } from "@/lib/api";
 import { getArtistImage, extractArtist } from "@/lib/artistImages";
@@ -79,9 +79,11 @@ const SongList = ({ songs }: { songs: SongResult[] }) => (
 
 /* ── CommentSection ────────────────────────────────────────────────────────── */
 const CommentSection = ({
-  postId, currentUserPhoto, currentUsername,
+  postId, postOwnerId, currentUserId, currentUserPhoto, currentUsername,
 }: {
   postId:           string;
+  postOwnerId:      string;
+  currentUserId:    string;
   currentUserPhoto: string | null;
   currentUsername:  string;
 }) => {
@@ -111,6 +113,15 @@ const CommentSection = ({
     }
   };
 
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      await apiDeleteComment(postId, commentId);
+      setComments((prev) => prev.filter((c) => c.comment_id !== commentId));
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Error al eliminar comentario");
+    }
+  };
+
   return (
     <div className="border-t border-white/40 pt-3 space-y-2 mt-1">
       {!loaded ? (
@@ -126,6 +137,16 @@ const CommentSection = ({
               <p className="text-xs font-body text-foreground/80 leading-relaxed">{c.content}</p>
             </div>
             <span className="text-[10px] text-muted-foreground/55 font-body mt-1 shrink-0">{timeAgo(c.created_at)}</span>
+            {(c.user_id === currentUserId || postOwnerId === currentUserId) && (
+              <button
+                type="button"
+                onClick={() => handleDeleteComment(c.comment_id)}
+                className="mt-1 shrink-0 text-muted-foreground/40 hover:text-red-400 transition-colors"
+                title="Eliminar comentario"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            )}
           </div>
         ))
       )}
@@ -155,7 +176,7 @@ const CommentSection = ({
 
 /* ── PostCard ──────────────────────────────────────────────────────────────── */
 const PostCard = ({
-  post, currentUserId, currentUserPhoto, currentUsername, onLike, onViewProfile,
+  post, currentUserId, currentUserPhoto, currentUsername, onLike, onViewProfile, onDelete,
 }: {
   post:             Post;
   currentUserId:    string;
@@ -163,9 +184,19 @@ const PostCard = ({
   currentUsername:  string;
   onLike:           (id: string) => void;
   onViewProfile:    (userId: string) => void;
+  onDelete:         (id: string) => void;
 }) => {
   const [showComments, setShowComments] = useState(false);
   const songs: SongResult[] = post.analysis_data?.songs ?? [];
+
+  const handleDelete = async () => {
+    try {
+      await apiDeletePost(post.post_id);
+      onDelete(post.post_id);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Error al eliminar post");
+    }
+  };
 
   return (
     <div
@@ -177,11 +208,11 @@ const PostCard = ({
     >
       {/* Header usuario */}
       <div className="flex items-center gap-3">
-        <button onClick={() => onViewProfile(post.user_id)} className="shrink-0 hover:scale-105 transition-transform">
+        <button type="button" onClick={() => onViewProfile(post.user_id)} className="shrink-0 hover:scale-105 transition-transform">
           <Avatar photo={post.user_photo} username={post.username} size="md" />
         </button>
         <div className="flex-1 min-w-0">
-          <button onClick={() => onViewProfile(post.user_id)} className="hover:underline text-left">
+          <button type="button" onClick={() => onViewProfile(post.user_id)} className="hover:underline text-left">
             <p className="font-heading font-semibold text-sm text-foreground">{post.username}</p>
           </button>
           <p className="text-muted-foreground/60 text-xs font-body">{timeAgo(post.created_at)}</p>
@@ -193,6 +224,16 @@ const PostCard = ({
           >
             <Music2 className="w-3 h-3" /> análisis vocal
           </span>
+        )}
+        {post.user_id === currentUserId && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="text-muted-foreground/40 hover:text-red-400 transition-colors"
+            title="Eliminar publicación"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
         )}
       </div>
 
@@ -207,6 +248,7 @@ const PostCard = ({
       {/* Actions */}
       <div className="flex items-center gap-4 pt-1 border-t border-white/60">
         <button
+          type="button"
           onClick={() => onLike(post.post_id)}
           className={`flex items-center gap-1.5 text-sm font-body transition-all mt-1 ${post.liked_by_me ? "text-red-400 scale-110" : "text-muted-foreground hover:text-red-400 hover:scale-110"}`}
         >
@@ -214,6 +256,7 @@ const PostCard = ({
           {post.likes.length > 0 && <span>{post.likes.length}</span>}
         </button>
         <button
+          type="button"
           onClick={() => setShowComments((v) => !v)}
           className="flex items-center gap-1.5 text-sm font-body text-muted-foreground hover:text-primary transition-colors mt-1"
         >
@@ -225,6 +268,8 @@ const PostCard = ({
       {showComments && (
         <CommentSection
           postId={post.post_id}
+          postOwnerId={post.user_id}
+          currentUserId={currentUserId}
           currentUserPhoto={currentUserPhoto}
           currentUsername={currentUsername}
         />
@@ -235,13 +280,14 @@ const PostCard = ({
 
 /* ── ProfilePostCard ───────────────────────────────────────────────────────── */
 const ProfilePostCard = ({
-  post, currentUserId, currentUserPhoto, currentUsername, onLike,
+  post, currentUserId, currentUserPhoto, currentUsername, onLike, onDelete,
 }: {
   post:             import("@/lib/api").ProfilePost;
   currentUserId:    string;
   currentUserPhoto: string | null;
   currentUsername:  string;
   onLike:           (postId: string, currentlyLiked: boolean) => void;
+  onDelete:         (postId: string) => void;
 }) => {
   const [likeCount,  setLikeCount]  = useState(post.likes);
   const [likedByMe,  setLikedByMe]  = useState(post.liked_by_me);
@@ -255,6 +301,15 @@ const ProfilePostCard = ({
     onLike(post.post_id, wasLiked);
   };
 
+  const handleDelete = async () => {
+    try {
+      await apiDeletePost(post.post_id);
+      onDelete(post.post_id);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Error al eliminar post");
+    }
+  };
+
   return (
     <div
       className="rounded-2xl p-4 space-y-3"
@@ -264,20 +319,35 @@ const ProfilePostCard = ({
         boxShadow: "0 2px 4px rgba(0,60,100,0.06), 0 8px 24px rgba(0,60,100,0.08), inset 0 1px 0 rgba(255,255,255,0.85)",
       }}
     >
-      {post.post_type === "analysis_share" && (
-        <span
-          className="flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full font-body font-semibold w-fit"
-          style={{ background: "rgba(255,255,255,0.45)", color: "hsl(200,50%,30%)", border: "1px solid rgba(255,255,255,0.65)" }}
-        >
-          <Music2 className="w-3 h-3" /> análisis vocal
-        </span>
-      )}
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1">
+          {post.post_type === "analysis_share" && (
+            <span
+              className="flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full font-body font-semibold w-fit"
+              style={{ background: "rgba(255,255,255,0.45)", color: "hsl(200,50%,30%)", border: "1px solid rgba(255,255,255,0.65)" }}
+            >
+              <Music2 className="w-3 h-3" /> análisis vocal
+            </span>
+          )}
+        </div>
+        {post.user_id === currentUserId && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="text-muted-foreground/40 hover:text-red-400 transition-colors shrink-0"
+            title="Eliminar publicación"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
+      </div>
       {post.content && <p className="text-sm text-foreground/90 font-body leading-relaxed">{post.content}</p>}
       {post.post_type === "analysis_share" && songs.length > 0 && <SongList songs={songs} />}
 
       {/* Actions */}
       <div className="flex items-center gap-4 pt-1 border-t border-white/60">
         <button
+          type="button"
           onClick={handleLike}
           className={`flex items-center gap-1.5 text-sm font-body transition-all mt-1 ${likedByMe ? "text-red-400 scale-110" : "text-muted-foreground hover:text-red-400 hover:scale-110"}`}
         >
@@ -285,6 +355,7 @@ const ProfilePostCard = ({
           {likeCount > 0 && <span>{likeCount}</span>}
         </button>
         <button
+          type="button"
           onClick={() => setShowComments((v) => !v)}
           className="flex items-center gap-1.5 text-sm font-body text-muted-foreground hover:text-primary transition-colors mt-1"
         >
@@ -297,6 +368,8 @@ const ProfilePostCard = ({
       {showComments && (
         <CommentSection
           postId={post.post_id}
+          postOwnerId={post.user_id}
+          currentUserId={currentUserId}
           currentUserPhoto={currentUserPhoto}
           currentUsername={currentUsername}
         />
@@ -353,9 +426,12 @@ const UserProfilePage = ({
     try {
       await apiToggleLike(postId);
     } catch {
-      // revert optimistic update — reload profile
       apiGetProfile(userId).then((data) => setProfile(data)).catch(() => {});
     }
+  };
+
+  const handleDeletePost = (postId: string) => {
+    setProfile((p) => p ? { ...p, posts: p.posts.filter((x) => x.post_id !== postId), posts_count: p.posts_count - 1 } : p);
   };
 
   return (
@@ -493,6 +569,7 @@ const UserProfilePage = ({
                       currentUserPhoto={currentUserPhoto}
                       currentUsername={currentUsername}
                       onLike={handleLike}
+                      onDelete={handleDeletePost}
                     />
                   ))}
                 </div>
@@ -844,6 +921,10 @@ const SocialFeed = ({ currentUserId, currentUsername, currentUserPhoto, pendingS
     ));
   };
 
+  const handleDelete = (postId: string) => {
+    setPosts((prev) => prev.filter((p) => p.post_id !== postId));
+  };
+
   if (viewProfileId) {
     return (
       <div className="max-w-5xl mx-auto">
@@ -927,6 +1008,7 @@ const SocialFeed = ({ currentUserId, currentUsername, currentUserPhoto, pendingS
                       currentUsername={currentUsername}
                       onLike={handleLike}
                       onViewProfile={setViewProfileId}
+                      onDelete={handleDelete}
                     />
                   ))}
                 </div>

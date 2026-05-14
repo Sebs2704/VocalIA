@@ -392,3 +392,32 @@ async def get_comments(post_id: str):
         "content":    c.get("content", ""),
         "created_at": c["created_at"].isoformat() + "Z",
     } for c in raw]}
+
+
+@router.delete("/posts/{post_id}")
+async def delete_post(post_id: str, authorization: Optional[str] = Header(None)):
+    user = await _require_user(authorization)
+    post = await posts_col.find_one({"_id": post_id})
+    if not post:
+        raise HTTPException(status_code=404, detail="Post no encontrado")
+    if post["user_id"] != user["_id"]:
+        raise HTTPException(status_code=403, detail="No puedes eliminar este post")
+    await posts_col.delete_one({"_id": post_id})
+    await comments_col.delete_many({"post_id": post_id})
+    await notifs_col.delete_many({"post_id": post_id})
+    return {"message": "Post eliminado"}
+
+
+@router.delete("/posts/{post_id}/comments/{comment_id}")
+async def delete_comment(post_id: str, comment_id: str, authorization: Optional[str] = Header(None)):
+    user = await _require_user(authorization)
+    comment = await comments_col.find_one({"_id": comment_id, "post_id": post_id})
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comentario no encontrado")
+    post = await posts_col.find_one({"_id": post_id})
+    is_comment_author = comment["user_id"] == user["_id"]
+    is_post_owner = post and post["user_id"] == user["_id"]
+    if not is_comment_author and not is_post_owner:
+        raise HTTPException(status_code=403, detail="No puedes eliminar este comentario")
+    await comments_col.delete_one({"_id": comment_id})
+    return {"message": "Comentario eliminado"}
