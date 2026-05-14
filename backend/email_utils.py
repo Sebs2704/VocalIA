@@ -1,28 +1,26 @@
-import smtplib
+import httpx
 import asyncio
-import socket
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from config import settings
 
 
-def _send_smtp(to_email: str, subject: str, html_body: str) -> None:
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"] = settings.SMTP_USER
-    msg["To"] = to_email
-    msg.attach(MIMEText(html_body, "html", "utf-8"))
-
-    # Puerto 465 SSL directo (igual que nodemailer service:'gmail')
-    # Forzar IPv4 — Railway no tiene rutas IPv6
-    ipv4 = socket.getaddrinfo("smtp.gmail.com", 465, socket.AF_INET)[0][4][0]
-    with smtplib.SMTP_SSL(ipv4, 465) as server:
-        server.login(settings.SMTP_USER, settings.SMTP_PASS)
-        server.sendmail(settings.SMTP_USER, to_email, msg.as_string())
-
-
 async def send_email(to_email: str, subject: str, html_body: str) -> None:
-    await asyncio.to_thread(_send_smtp, to_email, subject, html_body)
+    payload = {
+        "sender":      {"name": "VocalIA", "email": settings.BREVO_SENDER},
+        "to":          [{"email": to_email}],
+        "subject":     subject,
+        "htmlContent": html_body,
+    }
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers={
+                "api-key":      settings.BREVO_API_KEY,
+                "Content-Type": "application/json",
+            },
+            json=payload,
+        )
+        if resp.status_code >= 400:
+            raise RuntimeError(f"Brevo error {resp.status_code}: {resp.text}")
 
 
 def reset_password_html(username: str, reset_url: str) -> str:

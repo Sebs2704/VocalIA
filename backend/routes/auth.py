@@ -145,10 +145,7 @@ async def forgot_password(data: ForgotPasswordRequest):
     try:
         await send_email(user["email"], "Restablece tu contraseña — VocalIA", html)
     except Exception as e:
-        import traceback
-        print(f"EMAIL ERROR: {type(e).__name__}: {e}")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Error al enviar el correo: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail=f"Error al enviar el correo: {e}")
 
     return {"message": "Si el correo está registrado, recibirás un enlace."}
 
