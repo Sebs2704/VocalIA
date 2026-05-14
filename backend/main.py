@@ -33,7 +33,10 @@ app.include_router(social.router,  prefix="/social",  tags=["Social"])
 
 @app.on_event("startup")
 async def startup():
-    await seed_artists()
+    try:
+        await seed_artists()
+    except Exception as e:
+        print(f"WARNING: seed_artists failed on startup: {e}")
 
 
 @app.get("/")
